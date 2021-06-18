@@ -95,9 +95,9 @@ export const constantRoutes = [
         meta: { title: '商品管理', icon: 'form' }
       },
       {
-        path: 'trade-statistics',
-        name: 'TradeStatistics',
-        component: () => import('@/views/shop/trade-statistics.vue'),
+        path: 'trade-stat',
+        name: 'TradeStat',
+        component: () => import('@/views/shop/trade-stat.vue'),
         meta: { title: '交易统计', icon: 'form' }
       }
     ]
@@ -170,7 +170,7 @@ export const constantRoutes = [
         component: () => import('@/views/nested/menu2/index'),
         name: 'Menu2',
         meta: { title: '招生CRM' },
-        children:[
+        children: [
           {
             path: 'menu2-1',
             component: () => import('@/views/nested/menu2/index'),
@@ -190,12 +190,6 @@ export const constantRoutes = [
             meta: { title: '企业管理' }
           },
           {
-            path: 'menu2-3',
-            component: () => import('@/views/nested/menu2/index'),
-            name: 'menu2-3',
-            meta: { title: '企业联系人管理' }
-          },
-          {
             path: 'menu2-4',
             component: () => import('@/views/nested/menu2/index'),
             name: 'menu2-4',
@@ -208,14 +202,8 @@ export const constantRoutes = [
             meta: { title: '访客计划' }
           },
           {
-            path: 'menu2-5',
-            component: () => import('@/views/nested/menu2/index'),
-            name: 'menu2-5',
-            meta: { title: '访客计划' }
-          },
-          {
             path: 'menu2-6',
-            component: () => import('@/views/nested/menu2/index'),
+            component: () => import('@/views/nested/menu2/menu2-6/highSeas'),
             name: 'menu2-6',
             meta: { title: '意向学员公海池' }
           },
@@ -239,25 +227,25 @@ export const constantRoutes = [
   {
     path: '/educational-center',
     component: Layout,
-    meta:{ title: '教务中心', icon: 'link'},
-    children:[
+    meta: { title: '教务中心', icon: 'link' },
+    children: [
       {
         path: 'student-status-manage',
         name: 'StudentStatus',
-        component: () => import("@/views/educational/student-status"),
-        meta:{ title: '学籍管理', icon: 'link'}
+        component: () => import('@/views/educational/student-status'),
+        meta: { title: '学籍管理', icon: 'link' }
       },
       {
         path: 'teaching-manage',
         name: 'Teaching',
-        component: () => import("@/views/educational/teaching"),
-        meta:{ title: '教学管理', icon: 'link'}
+        component: () => import('@/views/educational/teaching'),
+        meta: { title: '教学管理', icon: 'link' }
       },
       {
         path: 'examination-manage',
         name: 'Examination',
-        component: () => import("@/views/educational/examination"),
-        meta:{ title: '考务管理', icon: 'link'}
+        component: () => import('@/views/educational/examination'),
+        meta: { title: '考务管理', icon: 'link' }
       }
     ]
   },
@@ -266,25 +254,25 @@ export const constantRoutes = [
     path: '/financial-center',
     name: 'Financial',
     component: Layout,
-    meta:{ title: '财务中心', icon: 'link'},
+    meta: { title: '财务中心', icon: 'link' },
     children: [
       {
         path: 'paycost-manage',
         name: 'Paycost',
         component: () => import('@/views/financial/paycost'),
-        meta:{ title: '缴费管理', icon: 'link'}
+        meta: { title: '缴费管理', icon: 'link' }
       },
       {
         path: 'lackof-manage',
         name: 'Lackof',
         component: () => import('@/views/financial/lackof'),
-        meta:{ title: '欠费管理', icon: 'link'}
+        meta: { title: '欠费管理', icon: 'link' }
       },
       {
         path: 'they-deal',
         name: 'TheyDeal',
         component: () => import('@/views/financial/they-deal'),
-        meta:{ title: '网校交易', icon: 'link'}
+        meta: { title: '网校交易', icon: 'link' }
       }
     ]
   },

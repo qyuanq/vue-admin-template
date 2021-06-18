@@ -6,7 +6,7 @@
           </template>
       </home-title>
       <div class="activity-body">
-          <img src="../assets/hd.jpg" style="width:530px;" />
+          <img src="../assets/hd.jpg" class="picture" />
           <div class="">【进行中】618年中限时优惠</div>
           <div class="">
               <i class="el-icon-platform-eleme" />
@@ -21,6 +21,7 @@ import homeTitle from './home-title'
 export default {
   data () {
     return {
+      
     };
   },
 
@@ -36,6 +37,15 @@ export default {
 </script>
 <style lang='scss' scoped>
 .activity{
+    width:100%;
     background: #fff;
+    .activity-body{
+      width: 100%;
+      padding: 10px;
+      .picture{
+        width: 100%;
+        border-radius: 25px;
+      }
+    }
 }
 </style>

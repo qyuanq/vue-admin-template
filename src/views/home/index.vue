@@ -34,14 +34,16 @@ export default {
 .home-container{
   padding: 30px 20px;
   display: flex;
-  min-width: 1200px;
+  // min-width: 990px;
   background: #f6f6f6;
   .left{
-    flex-basis: 1150px;
-    margin-right: 10px;
+    // flex-basis: 620px;
+    flex:2;
+    margin-right: 20px;
   }
   .right{
-    flex-grow:1;
+    // flex-grow:1;
+    flex:1;
   }
 }
 </style>
