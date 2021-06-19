@@ -158,9 +158,9 @@ export const constantRoutes = [
             meta: { title: '课程推广' }
           },
           {
-            path: 'menu1-4',
+            path: 'menu1-5',
             component: () => import('@/views/nested/menu1/menu1-3'),
-            name: 'Menu1-4',
+            name: 'Menu1-5',
             meta: { title: '资料下载' }
           }
         ]

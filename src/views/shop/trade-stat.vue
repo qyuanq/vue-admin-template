@@ -1,58 +1,104 @@
 <template>
   <div class="container">
-    交易统计
-    <div class="search-head">
-      <div class="left">
-        <el-button type="primary">新建线索</el-button>
-        <el-button>导入线索</el-button>
-        <el-button icon="el-icon-download" />
-      </div>
-      <div class="right">
-        <el-select v-model="typeValue" clearable :placeholder="options[0].label">
-          <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        <div class="search">
-          <el-input v-model="searchValue" placeholder="请输入内容">
-            <el-button slot="append" icon="el-icon-search" />
-          </el-input>
+    <div class="search-content">
+      <div class="search-head">
+        <div class="left">
+          <el-button type="primary">新建线索</el-button>
+          <el-button>导入线索</el-button>
+          <el-button icon="el-icon-download" @click="exportExcel" />
         </div>
-        <div class="dater">
-          <el-date-picker
-            v-model="dater"
-            type="daterange"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            :default-time="['00:00:00', '23:59:59']"
-          />
+        <div class="right">
+          <el-select v-model="typeValue" clearable :placeholder="options[0].label">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+          <div class="search">
+            <el-input v-model="searchValue" placeholder="请输入内容">
+              <el-button slot="append" icon="el-icon-search" />
+            </el-input>
+          </div>
+          <div class="dater">
+            <el-date-picker
+              v-model="dater"
+              type="daterange"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="search-label">
+        <div class="labels">
+          <span>常用标签：</span>
+          <div class="checkboxs">
+            <el-checkbox-group v-model="checkList">
+              <el-checkbox label="参与返款" />
+              <el-checkbox label="支持赔付" />
+              <el-checkbox label="反款待联系" />
+              <el-checkbox label="鲁班线索" />
+              <el-checkbox label="赠款活动" />
+            </el-checkbox-group>
+          </div>
+        </div>
+        <div class="setting">
+          设置<i class="el-icon-setting" />
         </div>
       </div>
     </div>
-    <div class="search-label">
-      <div class="labels">
-        <span>常用标签：</span>
-        <div class="checkboxs">
-          <el-checkbox-group v-model="checkList">
-            <el-checkbox label="参与返款" />
-            <el-checkbox label="支持赔付" />
-            <el-checkbox label="反款待联系" />
-            <el-checkbox label="鲁班线索" />
-            <el-checkbox label="赠款活动" />
-          </el-checkbox-group>
+    <div class="data-table">
+      <el-table
+        ref="dragTable"
+        :data="tableData"
+        style="width: 100%"
+        :border="true"
+        row-key="id"
+      >
+        <el-table-column
+          v-for="colum in columnData"
+          :key="colum.name"
+          :label="colum.name"
+          :prop="colum.prop"
+          :min-width="colum.width"
+        />
+        <el-table-column
+          align="center"
+        >
+          <template slot="header" slot-scope="scope">
+            <span>操作</span>
+            <span class="colum-custom">自定义<i class="el-icon-setting" /></span>
+          </template>
+          <template slot-scope="scope">
+            <div class="colum-btns">
+              <span @click="onDetail(scope.$index,scope.row)">详情</span>
+              <span><i class="el-icon-phone">通话</i></span>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <div class="deatil-drawer">
+      <el-drawer
+        :visible.sync="drawer"
+        direction="rtl"
+        size="50%"
+      >
+        <div class="drawer-content">
+          <div class="head">
+            <span v-if="rowIdx > -1">{{ tableData[rowIdx]['name'] }}</span>
+            <span><i class="el-icon-phon">拨打电话</i></span>
+          </div>
         </div>
-      </div>
-      <div class="setting">
-        设置<icon class="el-icon-setting" />
-      </div>
+      </el-drawer>
     </div>
   </div>
 </template>
 
 <script>
+import Sortable from 'sortablejs'
 export default {
 
   components: {},
@@ -67,43 +113,159 @@ export default {
         { value: 4, label: '按详细地址' }
       ],
       dater: null, // 日期
-      checkList: [] // 标签
+      checkList: [], // 标签
+      columnData: [ // 表格列信息
+        { name: 'id', prop: 'id', width: '' },
+        { name: '姓名', prop: 'name', width: '' },
+        { name: '电话', prop: 'tel', width: '' },
+        { name: '所属人', prop: 'belongPeople', width: '' },
+        { name: '线索状态', prop: 'cluesState', width: '' },
+        { name: '通话状态', prop: 'callState', width: '' },
+        { name: '标签', prop: 'label', width: '' },
+        { name: '线索类型', prop: 'cluesType', width: '' },
+        { name: '业务来源', prop: 'businessSource', width: '' },
+        { name: '流量来源', prop: 'trafficSource', width: '' },
+        { name: '转化状态', prop: 'converState', width: '' },
+        { name: '落地页链接', prop: 'pageLink', width: '120' }
+      ],
+      tableData: [],
+      drawer: false, // 是否显示详情界面
+      rowIdx: -1 // 详情信息索引
     }
   },
 
   computed: {},
 
-  methods: {}
+  created() {
+    // 设置dater默认显示当前时间至一周前
+    // dater的格式为[时间戳，时间戳]
+    const date = new Date()
+    const d1 = date.getTime()
+    const d2 = date.setTime(d1 - 3600 * 1000 * 24 * 7)
+    this.dater = [d2, d1]
+
+    // 表格数据信息
+    setTimeout(() => {
+      this.tableData = [
+        { id: 1, name: '未命名', tel: '13342088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 2, name: '张三里', tel: '13325088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 3, name: '丽丽', tel: '13358088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 4, name: '张良', tel: '15442088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 5, name: '王蒙', tel: '13642088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 6, name: '徐柳', tel: '18942088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 7, name: '鹤望兰', tel: '16342088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' },
+        { id: 8, name: '和天文', tel: '17732088500', belongPeople: '', cluesState: '未联系', callState: '有效沟通', label: '', cluesType: '智能电话', businessSource: '橙子建站', trafficSource: '抖音', converState: '合法转化', pageLink: 'https://www.ccc.com' }
+      ]
+    }, 1000)
+    this.$nextTick(() => {
+      this.setSort()
+    })
+  },
+
+  methods: {
+    onDetail(index, row) {
+      // scope 行信息，列信息 索引
+      for (let i = 0; i < this.tableData.length; i++) {
+        if (this.tableData[i].id === row.id) {
+          this.rowIdx = i
+          break
+        }
+      }
+      console.log(index, row.id, this.rowIdx)
+      if (this.rowIdx < 0) return
+      this.drawer = true
+    },
+    exportExcel() {
+      console.log('导出')
+      import('@/vendor/Export2Excel').then(excel => {
+        const tHeader = this.columnData.map(td => {
+          return td.name
+        })
+        console.log(tHeader)
+        const data = this.tableData
+        excel.export_json_to_excel({
+          header: tHeader, // 表头 必填
+          data, // 具体数据 必填
+          filename: 'crm', // 非必填
+          autoWidth: true, // 非必填
+          bookType: 'xlsx' // 非必填
+        })
+      })
+    },
+
+    // 拖拽
+    setSort() {
+      const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
+      this.sortable = Sortable.create(el, {
+        ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
+        setData: function(dataTransfer) {
+          // to avoid Firefox bug
+          // Detail see : https://github.com/RubaXa/Sortable/issues/1012
+          dataTransfer.setData('Text', '')
+        },
+        onEnd: evt => {
+          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0]
+          this.tableData.splice(evt.newIndex, 0, targetRow)
+        }
+      })
+    }
+  }
 }
 
 </script>
+<style>
+.sortable-ghost{
+  opacity: .8;
+  color: #fff!important;
+  background: #42b983!important;
+}
+</style>
 <style lang='scss' scoped>
 .container{
-  .search-head{
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    .right{
+  padding: 20px 30px;
+  .search-content{
+    background: $appMainPageBg;
+    box-shadow: 0 6px 6px -6px #ccc;
+    .search-head{
       display: flex;
-      .saerch{
-        ::v-deep{
-          width: 200px;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-bottom: 1px solid #eee;
+      .right{
+        display: flex;
+        .search{
+          ::v-deep{
+            width: 200px;
+          }
+        }
+        .dater{
+          margin-left: 10px;
         }
       }
-      .dater{
-        margin-left: 10px;
+    }
+    .search-label{
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      .labels{
+        display: flex;
+      }
+      .setting{
+        color: #0672ff;
       }
     }
   }
-  .search-label{
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    .labels{
-      display: flex;
+  .data-table{
+    margin-top: 20px;
+    box-shadow: 0 0 6px #ccc;
+    .colum-custom{
+      color: $menuActiveText;
+      margin-left: 10px;
     }
-    .setting{
-      color: #0672ff;
+    .colum-btns{
+      color: $menuActiveText;
+      display: flex;
+      justify-content: space-around;
     }
   }
 }
