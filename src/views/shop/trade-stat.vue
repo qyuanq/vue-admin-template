@@ -94,11 +94,23 @@
         </div>
       </el-drawer>
     </div>
+    <el-dialog
+      title="提示"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose">
+      <span>这是一段信息</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import Sortable from 'sortablejs'
+// import {export_json_to_excel} from '../../vendor/Export2Excel.js'
 export default {
 
   components: {},
@@ -175,24 +187,41 @@ export default {
       if (this.rowIdx < 0) return
       this.drawer = true
     },
-    exportExcel() {
-      console.log('导出')
+     exportExcel() {
       import('@/vendor/Export2Excel').then(excel => {
+        console.log('导出',excel.export_json_to_excel)
         const tHeader = this.columnData.map(td => {
           return td.name
         })
-        console.log(tHeader)
-        const data = this.tableData
+        const filterVal = this.columnData.map(val => {
+          return val.prop
+        })
+        //转化二维数组
+        const data = this.formatJson(filterVal,this.tableData)
+        console.log(tHeader,data)
         excel.export_json_to_excel({
           header: tHeader, // 表头 必填
           data, // 具体数据 必填
-          filename: 'crm', // 非必填
-          autoWidth: true, // 非必填
+          filename: '飞鱼数据', // 非必填
           bookType: 'xlsx' // 非必填
+        })
+        .then(res => {
+          console.log(res)
+        }).catch(e => {
+          console.log(e)
         })
       })
     },
 
+    formatJson(filterVal, jsonData) {
+        return jsonData.map(v => filterVal.map(j => {
+          if (j === 'timestamp') {
+            return parseTime(v[j])
+          } else {
+            return v[j]
+          }
+        }))
+      },
     // 拖拽
     setSort() {
       const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]

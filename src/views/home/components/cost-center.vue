@@ -34,6 +34,10 @@ export default {
 
   data () {
     return {
+      amount: 0,
+      integer: null,
+      lastMonth: null,
+      month: null
     };
   },
 
