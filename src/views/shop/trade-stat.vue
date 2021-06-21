@@ -4,7 +4,7 @@
       <div class="search-head">
         <div class="left">
           <el-button type="primary">新建线索</el-button>
-          <el-button>导入线索</el-button>
+          <el-button @click="dialogVisible=true">导入线索</el-button>
           <el-button icon="el-icon-download" @click="exportExcel" />
         </div>
         <div class="right">
@@ -94,11 +94,43 @@
         </div>
       </el-drawer>
     </div>
+    <div class="dialog">
+      <el-dialog
+        title="导入线索"
+        :visible.sync="dialogVisible"
+        width="30%"
+      >
+        <div class="content">
+          <div class="dowload">
+            <span class="label">下载模板</span>
+            <div class="dowload-btn">
+              <el-button type="primary" icon="el-icon-download" @click="downloadTemp">下载模板</el-button>
+              <p class="note">请按数据模板的格式准备要导入的数据</p>
+            </div>
+          </div>
+          <div class="upload">
+            <span class="label">上传文件</span>
+            <div class="upload-btn">
+              <input ref="inputFile" accept=".xls, .xlsx" type="file" style="display:none" @change="handlerFile">
+              <el-button icon="el-icon-upload2" @click="uploadFile">上传</el-button>
+            </div>
+          </div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="importExcel">开始导入</el-button>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
 import Sortable from 'sortablejs'
+import { parseTime } from '@/utils'
+import XLSX from 'js-xlsx'
+import { uploadFileExcel } from '@/api/table'
+import { isExcleOrWord } from '@/utils/upload'
 export default {
 
   components: {},
@@ -130,7 +162,9 @@ export default {
       ],
       tableData: [],
       drawer: false, // 是否显示详情界面
-      rowIdx: -1 // 详情信息索引
+      rowIdx: -1, // 详情信息索引
+      dialogVisible: false, // 显示上传框
+      file: null // 上传文件信息
     }
   },
 
@@ -175,14 +209,18 @@ export default {
       if (this.rowIdx < 0) return
       this.drawer = true
     },
+
+    // 导出
     exportExcel() {
-      console.log('导出')
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = this.columnData.map(td => {
           return td.name
         })
-        console.log(tHeader)
-        const data = this.tableData
+        // console.log(tHeader, this.tableData)
+        const filterVal = this.columnData.map(td => {
+          return td.prop
+        })
+        const data = this.formatJson(filterVal, this.tableData)
         excel.export_json_to_excel({
           header: tHeader, // 表头 必填
           data, // 具体数据 必填
@@ -191,6 +229,85 @@ export default {
           bookType: 'xlsx' // 非必填
         })
       })
+    },
+    // json转二维数组
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => {
+        if (j === 'timestamp') {
+          return parseTime(v[j])
+        } else {
+          return v[j]
+        }
+      }))
+    },
+    // 导入
+    uploadFile() {
+      this.$refs['inputFile'].click()
+    },
+    handlerFile(e) {
+      const files = e.target.files
+      this.file = files[0]
+    },
+    // 读excel
+    async readerData(rawFile) {
+      // this.loading = true
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = e => {
+          const data = e.target.result
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheetName = workbook.SheetNames[0]
+          const worksheet = workbook.Sheets[firstSheetName]
+          const header = this.getHeaderRow(worksheet)
+          const results = XLSX.utils.sheet_to_json(worksheet)
+          console.log(results)
+          // this.generateData({ header, results })
+          // this.loading = false
+          this.tableData = results
+          resolve()
+        }
+        reader.readAsArrayBuffer(rawFile)
+      })
+    },
+    getHeaderRow(sheet) {
+      const headers = []
+      const range = XLSX.utils.decode_range(sheet['!ref'])
+      let C
+      const R = range.s.r
+      /* start in the first row */
+      for (C = range.s.c; C <= range.e.c; ++C) { /* walk every column in the range */
+        const cell = sheet[XLSX.utils.encode_cell({ c: C, r: R })]
+        /* find the cell in the first row */
+        let hdr = 'UNKNOWN ' + C // <-- replace with your desired default
+        if (cell && cell.t) hdr = XLSX.utils.format_cell(cell)
+        headers.push(hdr)
+      }
+      return headers
+    },
+    async importExcel() {
+      console.log(this.file)
+      if (!this.file) {
+        return
+      }
+      // 对file做校验
+      const isExcel = await isExcleOrWord(this.file)
+      if (!isExcel) {
+        console.log('文件格式错误')
+        return
+      }
+      // 指定文件模板的情况下，需要对表头做判断
+
+      // await this.readerData(this.file)
+      const formData = new FormData()
+      formData.append('name', 'file')
+      formData.append('file', this.file)
+      const res = await uploadFileExcel(formData)
+      console.log(res)
+    },
+
+    // 下载
+    downloadTemp() {
+      window.location.href = 'http://127.0.0.1:7001/public/crm.xlsx'
     },
 
     // 拖拽
@@ -266,6 +383,26 @@ export default {
       color: $menuActiveText;
       display: flex;
       justify-content: space-around;
+    }
+  }
+  .dialog{
+    .content{
+      box-sizing: border-box;
+      .dowload,.upload{
+        display: flex;
+        // align-items: center;
+        .label{
+          margin-right: 30px;
+          line-height: 40px;
+        }
+      }
+      .dowload{
+        margin-bottom: 25px;
+        .note{
+          font-size: 12px;
+          color: #999;
+        }
+      }
     }
   }
 }
