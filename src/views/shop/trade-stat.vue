@@ -94,6 +94,7 @@
         </div>
       </el-drawer>
     </div>
+<<<<<<< HEAD
     <div class="dialog">
       <el-dialog
         title="导入线索"
@@ -122,15 +123,32 @@
         </span>
       </el-dialog>
     </div>
+=======
+    <el-dialog
+      title="提示"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose">
+      <span>这是一段信息</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
+>>>>>>> 351f931c8ca5b0eb3c5aa21e3316b6d692d1d344
   </div>
 </template>
 
 <script>
 import Sortable from 'sortablejs'
+<<<<<<< HEAD
 import { parseTime } from '@/utils'
 import XLSX from 'js-xlsx'
 import { uploadFileExcel } from '@/api/table'
 import { isExcleOrWord } from '@/utils/upload'
+=======
+// import {export_json_to_excel} from '../../vendor/Export2Excel.js'
+>>>>>>> 351f931c8ca5b0eb3c5aa21e3316b6d692d1d344
 export default {
 
   components: {},
@@ -209,24 +227,42 @@ export default {
       if (this.rowIdx < 0) return
       this.drawer = true
     },
+<<<<<<< HEAD
 
     // 导出
     exportExcel() {
+=======
+     exportExcel() {
+>>>>>>> 351f931c8ca5b0eb3c5aa21e3316b6d692d1d344
       import('@/vendor/Export2Excel').then(excel => {
+        console.log('导出',excel.export_json_to_excel)
         const tHeader = this.columnData.map(td => {
           return td.name
         })
+<<<<<<< HEAD
         // console.log(tHeader, this.tableData)
         const filterVal = this.columnData.map(td => {
           return td.prop
         })
         const data = this.formatJson(filterVal, this.tableData)
+=======
+        const filterVal = this.columnData.map(val => {
+          return val.prop
+        })
+        //转化二维数组
+        const data = this.formatJson(filterVal,this.tableData)
+        console.log(tHeader,data)
+>>>>>>> 351f931c8ca5b0eb3c5aa21e3316b6d692d1d344
         excel.export_json_to_excel({
           header: tHeader, // 表头 必填
           data, // 具体数据 必填
-          filename: 'crm', // 非必填
-          autoWidth: true, // 非必填
+          filename: '飞鱼数据', // 非必填
           bookType: 'xlsx' // 非必填
+        })
+        .then(res => {
+          console.log(res)
+        }).catch(e => {
+          console.log(e)
         })
       })
     },
@@ -310,6 +346,15 @@ export default {
       window.location.href = 'http://127.0.0.1:7001/public/crm.xlsx'
     },
 
+    formatJson(filterVal, jsonData) {
+        return jsonData.map(v => filterVal.map(j => {
+          if (j === 'timestamp') {
+            return parseTime(v[j])
+          } else {
+            return v[j]
+          }
+        }))
+      },
     // 拖拽
     setSort() {
       const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
