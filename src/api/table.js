@@ -20,3 +20,28 @@ export function uploadFileExcel(data) {
   })
 }
 
+export function checkfile(data) {
+  return request({
+    url: '/api/checkfile',
+    method: 'post',
+    data
+  })
+}
+
+export function updateFile(data, progress) {
+  return request({
+    url: '/api/updateFile',
+    method: 'post',
+    data,
+    progress
+  })
+}
+
+export function mergeFile(data) {
+  return request({
+    url: '/api/mergeFile',
+    method: 'post',
+    data
+  })
+}
+

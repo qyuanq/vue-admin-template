@@ -99,6 +99,12 @@ export const constantRoutes = [
         name: 'TradeStat',
         component: () => import('@/views/shop/trade-stat.vue'),
         meta: { title: '交易统计', icon: 'form' }
+      },
+      {
+        path: 'upload-big',
+        name: 'UploadBigFile',
+        component: () => import('@/views/shop/UploadBigFile.vue'),
+        meta: { title: '上传大文件', icon: 'form' }
       }
     ]
   },

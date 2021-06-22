@@ -74,8 +74,7 @@ async function calculateHashWork(chunks) {
   })
 }
 // 时间切片浏览器空闲时间计算md5
-async function calculateHashIdle() {
-  const chunks = this.chunks
+async function calculateHashIdle(chunks) {
   return new Promise((resolve) => {
     const spark = new SparkMD5.ArrayBuffer()
     let count = 0
@@ -97,9 +96,9 @@ async function calculateHashIdle() {
         await appendToSpark(chunks[count].file)
         count++
         if (count < chunks.length) {
-          this.hashProgress = Number(((100 * count) / chunks.length).toFixed(2))
+          // this.hashProgress = Number(((100 * count) / chunks.length).toFixed(2))
         } else {
-          this.hashProgress = 100
+          // this.hashProgress = 100
           resolve(spark.end())
         }
       }
@@ -111,34 +110,61 @@ async function calculateHashIdle() {
   })
 }
 // 抽样hash
-async function calculateHashSample() {
+async function calculateHashSample(file) {
   return new Promise((resolve) => {
     const spark = new SparkMD5.ArrayBuffer()
     const reader = new FileReader()
     const offSize = 1 * 1024 * 1024
     // 第一个切片
-    const chunks = [this.file.slice(0, offSize)]
+    const chunks = [file.slice(0, offSize)]
     let cur = offSize
-    while (cur < this.file.size) {
-      if (cur + offSize >= this.file.size) {
+    while (cur < file.size) {
+      if (cur + offSize >= file.size) {
         // 最后一个切片
-        chunks.push(this.file.slice(cur, this.file.size))
+        chunks.push(file.slice(cur, file.size))
       } else { // 中间切片 取前中后各2各字节
         const mid = cur + offSize / 2
         const end = cur + offSize
-        chunks.push(this.file.slice(cur, cur + 2))
-        chunks.push(this.file.slice(mid, mid + 2))
-        chunks.push(this.file.slice(end - 2, end))
+        chunks.push(file.slice(cur, cur + 2))
+        chunks.push(file.slice(mid, mid + 2))
+        chunks.push(file.slice(end - 2, end))
       }
       cur += offSize
     }
     reader.readAsArrayBuffer(new Blob(chunks))
     reader.onload = (e) => {
       spark.append(e.target.result)
-      this.hashProgress = 100
-      resolve(spark.end())
+      const hashProgress = 100
+      resolve([spark.end(), hashProgress])
     }
   })
+}
+// 计算整个文件hash
+async function calculateFileHash(file) {
+  return new Promise((resolve) => {
+    const spark = new SparkMD5.ArrayBuffer()
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      spark.append(e.target.result)
+      resolve(spark.end())
+    }
+    reader.readAsArrayBuffer(file)
+  })
+}
+
+/**
+ * 切片上传
+ */
+// 切片
+const CHUNK_SIZE = 10 * 1024 * 1024 // 默认50M一个切片
+function createFileChunk(file, size = CHUNK_SIZE) {
+  const chunks = []
+  let cur = 0
+  while (cur < file.size) {
+    chunks.push({ index: cur, file: file.slice(cur, cur + size) })
+    cur += size
+  }
+  return chunks
 }
 
 export {
@@ -149,5 +175,8 @@ export {
   isExcleOrWord,
   calculateHashWork,
   calculateHashIdle,
-  calculateHashSample
+  calculateHashSample,
+  calculateFileHash,
+  createFileChunk,
+  CHUNK_SIZE
 }
