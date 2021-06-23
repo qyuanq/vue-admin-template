@@ -64,7 +64,7 @@ async function calculateHashWork(chunks) {
     // 每个切片的回传信息
     this.worker.onmessage = (e) => {
       const { progress, hash } = e.data
-      this.hashProgress = Number(progress.toFixed(2))
+      // this.hashProgress = Number(progress.toFixed(2))
       if (hash) {
         resolve(hash)
         // 关掉worker

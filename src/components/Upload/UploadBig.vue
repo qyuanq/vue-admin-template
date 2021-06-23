@@ -53,7 +53,9 @@ export default {
       this.chunks = createFileChunk(file)
       console.log(this.chunks)
       // 计算hash
-      const hash = await calculateHashWork(this.chunks)
+      // const hash = await calculateHashWork(this.chunks)
+      // const hash = await calculateHashSample(file)
+      const hash = await calculateHashIdle(this.chunks)
       this.hash = hash
       //   this.hash = res[0]
       //   this.hashProgress = res[1]
@@ -77,12 +79,16 @@ export default {
     // 自定义上传事件
     async uploaded(file) {
       console.log('上传了', file)
-
-      const data = {
-        hash: this.hash,
-        ext: this.ext
-      }
-      const { data: { uploaded, uploadedList }} = await checkfile(data)
+      // 坑：用不了json传值，一直pending
+      // const json = {
+      //   hash: this.hash,
+      //   ext: this.ext
+      // }
+      const formData = new FormData()
+      formData.append('hash', this.hash)
+      formData.append('ext', this.ext)
+      const { data: { uploaded, uploadedList }} = await checkfile(formData)
+      console.log(uploaded, uploadedList)
       if (uploaded) {
         this.$notify({
           message: '秒传成功'
@@ -107,6 +113,7 @@ export default {
     // 断点续传
     async uploadChunks(uploadedList = []) {
       // 断点续传：过滤不包含在uploadedList的chunk
+      console.log(this.chunks)
       const requests = this.chunks
         .filter(chunk => !uploadedList.includes(chunk.name))
         .map((chunk, index) => {
@@ -126,13 +133,17 @@ export default {
 
     // 合并切片
     async  mergeRequest() {
-      const data = {
-        ext: this.file.name.split('.').pop(),
-        size: CHUNK_SIZE,
-        hash: this.hash
-      }
-      const res = await mergeFile(data)
-      if (res.code === 0) {
+      // const data = {
+      //   ext: this.ext,
+      //   size: CHUNK_SIZE,
+      //   hash: this.hash
+      // }
+      const form = new FormData()
+      form.append('ext', this.ext)
+      form.append('size', CHUNK_SIZE)
+      form.append('hash', this.hash)
+      const res = await mergeFile(form)
+      if (res.code === 20000) {
         this.$notify({
           message: '上传成功'
         })
@@ -156,13 +167,13 @@ export default {
           if (task) {
             const { form, index, error } = task
             try {
-              await updateFile(form, {
-                onUploadProgress: (progress) => {
-                  // 不是整体的进度条了，而是每个区块有自己的进度条，整体的进度条需要计算
-                  this.chunks[index].progress = Number(((progress.loaded / progress.total) * 100).toFixed(2))
-                }
-              })
-
+              // await updateFile(form, {
+              //   onUploadProgress: (progress) => {
+              //     // 不是整体的进度条了，而是每个区块有自己的进度条，整体的进度条需要计算
+              //     this.chunks[index].progress = Number(((progress.loaded / progress.total) * 100).toFixed(2))
+              //   }
+              // })
+              updateFile(form)
               if (count === len - 1) {
                 // 最后一个任务
                 resolve()

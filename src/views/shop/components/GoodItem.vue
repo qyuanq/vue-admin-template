@@ -8,7 +8,7 @@
       </el-col>
       <el-col :span="18">
         <div class="content">
-          <h2 class="cource-title">二级造价师-建设工程计量与计价实务（土木建筑工程）<span class="cource-type" /><span class="cource-city" /></h2>
+          <h2 class="cource-title">{{ goods.name }}<span class="cource-type" /><span class="cource-city" /></h2>
           <div class="cource-specali">专业：二级造价工程师</div>
           <div class="content-center">
             <div class="content-item">
@@ -46,8 +46,10 @@
 
 <script>
 export default {
-
   components: {},
+  props: { goods: {
+    type: Object
+  }},
   data() {
     return {
       isOpen: true,

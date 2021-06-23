@@ -59,20 +59,18 @@
       </ul>
       <!-- <el-checkbox-group v-model="checkList"> -->
       <div class="good-list">
-        <div v-for="item in goodInfo" :key="item.id" class="good">
+        <div v-for="item in goodList" :key="item.id" class="good">
           <div class="checkbox"><el-checkbox v-model="item.checked" /></div>
-          <GoodItem />
+          <GoodItem :goods="item" />
         </div>
       </div>
       <div class="page">
-        <el-pagination
-          :current-page="currentPage"
-          :page-sizes="[3,10, 20, 25, 30, 50, 100, 200, 500, 1000]"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="goodInfo.length"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+        <pagination
+          v-show="total>0"
+          :total="total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          @pagination="getList"
         />
       </div>
       <!-- </el-checkbox-group> -->
@@ -82,15 +80,19 @@
 
 <script>
 import GoodItem from './components/GoodItem.vue'
+import Pagination from '@/components/Pagination'
 export default {
 
-  components: { GoodItem },
+  components: { GoodItem, Pagination },
   data() {
     return {
       isStudenShow: '是',
       isGoodShow: '否',
-      currentPage: 1,
-      pageSize: 3,
+      total: 1000,
+      listQuery: {
+        page: 1,
+        limit: 10
+      },
       timerOptions: [
         { value: 1, label: '按商品创建时间顺序' },
         { value: 2, label: '按商品创建时间倒序' },
@@ -105,15 +107,15 @@ export default {
         { value: 4, label: '资格证' }
       ],
       groupValue: '',
+      goodList: [],
       goodInfo: [
-        { id: 1, checked: false },
-        { id: 2, checked: false },
-        { id: 3, checked: false }
+        // { id: 1, checked: false },
+        // { id: 2, checked: false },
+        // { id: 3, checked: false }
 
       ]
     }
   },
-
   computed: {
     // 全选标识
     checkAll() {
@@ -123,7 +125,21 @@ export default {
     }
   },
 
+  created() {
+    let i = 1
+    while (i < 2000) {
+      this.goodInfo.push({ id: i, checked: false, name: '二级造价师-建设工程计量与计价实务（土木建筑工程）' + i })
+      i++
+    }
+    this.goodList = this.goodInfo.slice(0, this.listQuery.page * this.listQuery.limit)
+  },
+
   methods: {
+    // 获取列表信息
+    getList() {
+      const prePage = this.listQuery.page - 1
+      this.goodList = this.goodInfo.slice(prePage * this.listQuery.limit, this.listQuery.page * this.listQuery.limit)
+    },
     // 全选
     handleCheckAllChange(value) {
       if (!value) {
@@ -225,7 +241,6 @@ export default {
     .page{
       width: 100%;
       height: 70px;
-      padding: 20px;
     }
   }
 }

@@ -54,7 +54,21 @@ export const constantRoutes = [
       meta: { title: '首页', icon: 'dashboard' }
     }]
   },
-
+  {
+    path: '/permission',
+    component: Layout,
+    redirect: '/permission/role',
+    name: 'permission',
+    meta: { title: '权限控制', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'role',
+        name: 'Role',
+        component: () => import('@/views/permission/role'),
+        meta: { title: '角色管理', icon: 'table' }
+      }
+    ]
+  },
   {
     path: '/school',
     component: Layout,
@@ -95,15 +109,21 @@ export const constantRoutes = [
         meta: { title: '商品管理', icon: 'form' }
       },
       {
+        path: 'virt-list',
+        name: 'VirtList',
+        component: () => import('@/views/shop/virt-list'),
+        meta: { title: '虚拟列表', icon: 'form' }
+      },
+      {
         path: 'trade-stat',
         name: 'TradeStat',
-        component: () => import('@/views/shop/trade-stat.vue'),
+        component: () => import('@/views/shop/trade-stat'),
         meta: { title: '交易统计', icon: 'form' }
       },
       {
         path: 'upload-big',
         name: 'UploadBigFile',
-        component: () => import('@/views/shop/UploadBigFile.vue'),
+        component: () => import('@/views/shop/upload-big-file'),
         meta: { title: '上传大文件', icon: 'form' }
       }
     ]

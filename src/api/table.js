@@ -28,12 +28,11 @@ export function checkfile(data) {
   })
 }
 
-export function updateFile(data, progress) {
+export function updateFile(data) {
   return request({
     url: '/api/updateFile',
     method: 'post',
-    data,
-    progress
+    data
   })
 }
 
@@ -45,3 +44,10 @@ export function mergeFile(data) {
   })
 }
 
+export function aaa(data) {
+  return request({
+    url: '/api/aaa',
+    method: 'post',
+    data
+  })
+}
