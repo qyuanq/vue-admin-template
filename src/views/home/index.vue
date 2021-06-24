@@ -17,7 +17,7 @@ import costCenter from './components/cost-center'
 import activity from './components/activity'
 export default {
   name: 'Dashboard',
-  components:{
+  components: {
     Top,
     'cost-center': costCenter,
     activity
